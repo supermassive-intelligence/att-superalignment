@@ -5,7 +5,6 @@ from infra.salign.sql.extract_reasoning import extract_reasoning
 from infra.salign.superalignment.text2sql import add_metrics
 
 from infra.salign.util.get_config import get_config
-from infra.salign.util.prompt_template import PromptTemplate
 
 import copy
 import random
@@ -38,7 +37,6 @@ def explore_trajectories(results, llm_info, reasoners, seed=42):
     prompts = make_trajectory_prompts(errors, trajectories_per_error, reasoners, seed)
 
     responses = explore_trajectories_inference(prompts, llm_info)
-    print(responses)
 
     new_results = make_results(errors, responses, trajectories_per_error)
 
@@ -61,9 +59,9 @@ def explore_trajectories(results, llm_info, reasoners, seed=42):
     return final_results
 
 def explore_trajectories_inference(prompts, llm_info):
+
     try:
         llm = scalarlm.SupermassiveIntelligence(api_url=llm_info["api_url"])
-
         responses = llm.generate(
             prompts, max_tokens=1024, model_name=llm_info["model_name"]
         )

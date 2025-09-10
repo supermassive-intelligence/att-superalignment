@@ -93,8 +93,6 @@ def make_prompt(questions, query_logs, seed):
     )
     prompt += PromptTemplate().assistant()
 
-    # print(prompt)
-
     return prompt
 
 

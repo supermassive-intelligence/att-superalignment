@@ -17,7 +17,7 @@ class EnglishReasoningPrompt:
 
         prompt += f"The database name is `{example['database']['db_id']}`.\n"
 
-        #prompt += get_db_profile(example, seed=seed)
+        prompt += example["db_profile"]
         prompt += "\n\n"
 
         prompt += f"An analyst was asked to write a query to help answer this question: `{example['question']}`\n"

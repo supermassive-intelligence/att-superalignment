@@ -46,23 +46,6 @@ def load_database(db_id):
         "db_id": db_id,
     }
 
-def load_query_logs(db_name):
-
-    path = f"infra/salign/data/mgo/solutions/{db_name}.json"
-
-    if os.path.exists(path):
-
-        with open(path, "r") as file:
-            data = json.load(file)
-
-        return [
-            {
-                "reference_sql": item["reference_sql"] if "reference_sql" in item else item["generated_sql"],
-                "database": load_database(db_name),
-            }
-            for item in data
-            if item["score"] >= 1.0
-        ]
 
 def setup_logging():
     logging.basicConfig(level=logging.INFO)
@@ -70,26 +53,32 @@ def setup_logging():
 
 def load_problems(db_name):
     
-    return [{"question": "What is the capital of Qatar?", 
-             "reference_sql": "select * from table mgo", 
-             "database": load_database(db_name)}]
+    path = f"sdk/mgo/mgo.json"
+
+    with open(path, "r") as file:
+        data = json.load(file)
+
+    examples = []
+
+    questions = data["Queries"]
+    
+    schema = format_schema(data["Schema"])
+    
+    for item in questions:
+        example = {}
+        
+        example["question"] = item["Question"]
+        example["reference_sql"] = item["Original Query"]
+        example["db_profile"] = schema
+
+        example["database"] = load_database(db_name)
+
+        examples.append(example)
+    
+    return examples
 
 def load_llm(db_name):
-    model_path = f"infra/salign/data/mgo/llm/{db_name}.json"
-
-    model_config = None
-
-    if os.path.exists(model_path):
-        logger.info(f"Loading LLM model configuration from {model_path}...")
-
-        with open(model_path, "r") as file:
-            model_config = json.load(file)
-    else:
-        logger.info(
-            f"LLM model configuration not found at {model_path}. Using base model."
-        )
-
-    return model_config
+    return None
 
 def save_llm(model_config, db_name):
     model_path = f"infra/salign/data/mgo/llm/{db_name}.json"
@@ -102,3 +91,21 @@ def save_llm(model_config, db_name):
         logger.info(f"Saved LLM model configuration to {model_path}.")
     except Exception as e:
         logger.error(f"Failed to save LLM model configuration to {model_path}: {e}")
+        
+def format_schema(schema_json):
+    output = []
+    for table in schema_json:
+        table_str = f"TABLE: {table['table_name']}\n    COLUMNS:"
+        column_lines = []
+        for col in table["columns"]:
+            col_desc = col.get("column_description", "")
+            # Only include description if present/non-empty
+            if col_desc:
+                column_line = f"({col['column_name']}, {col['column_type']}, {col_desc})"
+            else:
+                column_line = f"({col['column_name']}, {col['column_type']})"
+            column_lines.append(column_line)
+        # Join columns, each on new line with indent
+        table_str += "\n    " + ",\n    ".join(column_lines)
+        output.append(table_str)
+    return "\n\n".join(output)
