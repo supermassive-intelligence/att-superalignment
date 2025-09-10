@@ -24,7 +24,7 @@ def solve():
     model = saligner.solve()
 
     logger.info("Solve completed successfully.")
-    save_llm(model, "MGO")
+    save_llm(model, db_name)
 
 
 def load_reasoners():
