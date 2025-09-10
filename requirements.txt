@@ -1,0 +1,11 @@
+scalarlm
+pydantic
+pyyaml
+scikit-learn
+pandas
+snowflake-connector-python[pandas]
+huggingface_hub
+datasets
+jsonlines
+tabulate
+pytest
